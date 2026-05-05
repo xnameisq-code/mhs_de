@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>멸혼사 인사기록지 생성기</title>
-    <!-- 명조체 폰트 불러오기 (고급스럽고 진중한 느낌) -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -81,17 +80,17 @@
         }
         button.download-btn:hover { background: linear-gradient(135deg, var(--red-light), var(--red-point)); color: #fff; box-shadow: 0 5px 15px rgba(139, 0, 0, 0.5); }
 
-        /* 오른쪽: 인사기록지 결과물 (3:4 비율 고정) */
+        /* 오른쪽: 인사기록지 결과물 (4:3 비율 고정) */
         .preview-section {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* 3:4 비율 고정 (600x800) - 프리미엄 명함 느낌 */
+        /* 4:3 비율 고정 (800x600) - 프리미엄 명함 느낌 */
         #id-card {
-            width: 600px;
-            height: 800px;
+            width: 800px;
+            height: 600px;
             background-color: var(--card-bg);
             border: 1px solid #222;
             box-sizing: border-box;
@@ -138,11 +137,24 @@
             z-index: 1;
         }
 
+        /* 본문 레이아웃 (가로 Flexbox) */
+        .card-body {
+            display: flex;
+            gap: 30px;
+        }
+
+        /* 사진 및 짤막한 정보 */
+        .left-column {
+            flex: 0 0 180px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
         /* 사진 영역 (비율 유지, 찌그러짐 방지, 프레임 디자인) */
         .photo-area {
             width: 180px;
-            height: 240px;
-            margin: 0 auto 40px;
+            height: 180px; /* 1:1 비율로 변경 */
             border: 2px solid #333;
             background-color: #050505;
             position: relative;
@@ -159,20 +171,40 @@
             width: 100%; height: 100%; object-fit: cover; display: none;
         }
 
-        /* 정보 영역 - Grid 레이아웃으로 밀림/겹침 완벽 방지 */
-        .info-grid {
+        /* 짤막한 정보 (성별, 본체 나이) */
+        .side-info {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 10px;
+        }
+        .side-info-label { color: var(--red-point); font-weight: 700; font-size: 14px; letter-spacing: 1px; }
+        .side-info-value { color: var(--gray); font-weight: 300; font-size: 15px; }
+
+        /* 정보 그리드 및 특이 체질 */
+        .right-column {
+            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 18px;
-            padding: 0 10px;
             position: relative;
             z-index: 5;
         }
 
-        .info-row {
+        /* 정보 영역 - Grid 레이아웃으로 밀림/겹침 완벽 방지 */
+        .info-grid {
             display: grid;
             grid-template-columns: 140px 1fr; /* 라벨 너비 고정, 나머지는 값이 차지 */
             align-items: flex-start; /* 글이 길어지면 위쪽 맞춤 */
+            gap: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 12px;
+        }
+
+        .info-row {
+            grid-column: 1 / -1; /* 그리드 전체 너비 */
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 10px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             padding-bottom: 12px;
         }
@@ -194,24 +226,10 @@
             overflow-wrap: break-word; /* 긴 텍스트 강제 줄바꿈 */
             white-space: pre-wrap; /* 사용자가 엔터 친 것도 반영 */
         }
-
-        /* 하단 경고문 */
-        .footer-warning {
-            position: absolute;
-            bottom: 40px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            color: rgba(139, 0, 0, 0.7);
-            font-size: 12px;
-            letter-spacing: 3px;
-            font-weight: 400;
-        }
     </style>
 </head>
 <body>
 
-    <!-- 입력 폼 -->
     <div class="editor-section">
         <h2>기록 열람 · 작성</h2>
         
@@ -269,7 +287,6 @@
         <button class="download-btn" onclick="downloadCard()">기록지 다운로드 (PNG)</button>
     </div>
 
-    <!-- 결과물 미리보기 -->
     <div class="preview-section">
         <div id="id-card">
             
@@ -277,44 +294,43 @@
                 <div class="card-title">멸혼사 인사기록지</div>
             </div>
             
-            <div class="photo-area">
-                <img id="card-photo" src="" alt="Profile Photo">
-            </div>
+            <div class="card-body">
+                <div class="left-column">
+                    <div class="photo-area">
+                        <img id="card-photo" src="" alt="Profile Photo">
+                    </div>
+                    <div class="side-info">
+                        <div class="side-info-label">성별</div>
+                        <div class="side-info-value" id="val-gender">남성</div>
+                        <div class="side-info-label">본체 나이</div>
+                        <div class="side-info-value" id="val-true-age">성인</div>
+                    </div>
+                </div>
 
-            <!-- 밀림 방지 Grid 적용 영역 -->
-            <div class="info-grid">
-                <div class="info-row">
-                    <div class="info-label">이름</div>
-                    <div class="info-value" id="val-name">미상</div>
+                <div class="right-column">
+                    <div class="info-grid">
+                        <div class="info-row">
+                            <div class="info-label">이름</div>
+                            <div class="info-value" id="val-name">미상</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">나이</div>
+                            <div class="info-value" id="val-age">미상</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">소속</div>
+                            <div class="info-value" id="val-affiliation">특대과</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">사용 무기</div>
+                            <div class="info-value" id="val-weapon">미상</div>
+                        </div>
+                        <div class="info-row" style="border: none;">
+                            <div class="info-label" style="align-self: flex-start; padding-top: 15px;">특이 체질<br>및 이능력</div>
+                            <div class="info-value" id="val-ability" style="padding-top: 15px;">기록 없음</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="info-row">
-                    <div class="info-label">나이</div>
-                    <div class="info-value" id="val-age">미상</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">소속</div>
-                    <div class="info-value" id="val-affiliation">특대과</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">사용 무기</div>
-                    <div class="info-value" id="val-weapon">미상</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">성별</div>
-                    <div class="info-value" id="val-gender">남성</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">본체 나이</div>
-                    <div class="info-value" id="val-true-age">성인</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">특이 체질<br>및 이능력</div>
-                    <div class="info-value" id="val-ability">기록 없음</div>
-                </div>
-            </div>
-
-            <div class="footer-warning">
-                본 인사기록지는 보안 문서로 무단 열람 및 유출을 금지합니다.
             </div>
         </div>
     </div>
