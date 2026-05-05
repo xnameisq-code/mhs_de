@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHS Personnel Record System</title>
+    <title>멸혼사 인사기록지 생성기</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
@@ -15,9 +15,9 @@
             margin: 0;
             padding: 20px;
             background-color: #050505;
+            font-family: 'Noto Serif KR', serif;
             display: flex;
             justify-content: center;
-            font-family: 'Noto Serif KR', serif;
         }
 
         :root {
@@ -26,24 +26,27 @@
             --border-grey: #2a2a2a;
         }
 
-        /* 폼과 미리보기를 감싸는 전체 레이아웃 (모바일 대응) */
+        /* -------------------------------------------
+           [1] 반응형 레이아웃 (PC vs Mobile)
+           ------------------------------------------- */
         .generator-layout {
-            display: grid;
-            grid-template-columns: 350px 1fr;
+            display: flex;
+            flex-direction: column; /* 모바일 기본: 위아래 배치 */
             gap: 30px;
             width: 100%;
-            max-width: 1300px;
+            max-width: 1200px;
         }
 
-        /* 모바일 화면(스마트폰)일 때 세로로 배치 */
-        @media (max-width: 900px) {
-            .generator-layout {
-                grid-template-columns: 1fr;
-            }
-            body { padding: 10px; }
+        /* PC 화면일 때: 좌우 배치 */
+        @media (min-width: 900px) {
+            .generator-layout { flex-direction: row; }
+            .editor-box { flex: 0 0 380px; }
+            .preview-section { flex: 1; min-width: 0; }
         }
 
-        /* 입력 폼 섹션 */
+        /* -------------------------------------------
+           [2] 왼쪽: 입력 폼 디자인
+           ------------------------------------------- */
         .editor-box {
             background: rgba(20, 20, 20, 0.9);
             border-left: 4px solid var(--deep-red);
@@ -59,70 +62,70 @@
             padding-bottom: 10px; letter-spacing: 3px;
         }
 
-        .input-group { margin-bottom: 15px; }
-        .input-group label {
-            display: block; color: #d4af37; font-size: 13px; margin-bottom: 6px; font-weight: bold;
+        .input-group { margin-bottom: 18px; }
+        .input-group label.title {
+            display: block; color: #d4af37; font-size: 13px; margin-bottom: 8px; font-weight: bold;
         }
-        .input-group input[type="text"], .input-group textarea, .input-group select {
+        .input-group input[type="text"], .input-group textarea {
             width: 100%; background: #111; border: 1px solid var(--border-grey);
-            color: #fff; padding: 10px; font-family: inherit; outline: none;
-            font-size: 14px; border-radius: 4px;
+            color: #fff; padding: 12px; font-family: inherit; outline: none;
+            font-size: 14px; border-radius: 4px; transition: 0.3s;
         }
         .input-group input:focus, .input-group textarea:focus { border-color: var(--deep-red); }
         .input-group input[type="file"] { 
-            width: 100%; padding: 8px; background: #111; color: #ccc; border: 1px dashed #555; border-radius: 4px; 
+            width: 100%; padding: 10px; background: #111; color: #ccc; border: 1px dashed #555; border-radius: 4px; cursor: pointer;
         }
 
-        /* [수정 완] 커스텀 라디오 버튼 스타일링 */
-        .radio-box-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        /* [수정 완] 라디오 버튼: 절대 안 깨지고 동일한 크기 유지 */
+        .hidden-radio { display: none !important; /* 기본 동그라미 완벽 삭제 */ }
+        .radio-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .radio-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         
-        /* 기본 동그라미 숨기기 (이게 원인이었습니다!) */
-        .radio-box-group input[type="radio"] { display: none; }
-        
-        .radio-box {
-            background: #111; border: 1px solid var(--border-grey); color: #ccc;
-            padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 13px;
-            transition: 0.2s; flex: 1; text-align: center;
+        .radio-label { display: block; cursor: pointer; margin: 0; }
+        .radio-btn {
+            display: block; text-align: center; background: #111; border: 1px solid var(--border-grey);
+            color: #ccc; padding: 10px 0; border-radius: 4px; font-size: 14px; transition: 0.2s;
         }
-        .radio-box:hover { border-color: #555; }
+        .radio-label:hover .radio-btn { border-color: #555; }
         
-        /* 선택되었을 때의 디자인 */
-        .radio-box-group input[type="radio"]:checked + .radio-box {
-            background: var(--deep-red); border-color: var(--deep-red);
-            color: white; font-weight: bold;
+        /* 선택되었을 때 컬러 변경 */
+        .hidden-radio:checked + .radio-btn {
+            background: var(--deep-red); border-color: var(--deep-red); color: white; font-weight: bold;
         }
 
         .btn-download {
-            margin-top: 20px; width: 100%; padding: 15px; background: var(--deep-red);
+            margin-top: 10px; width: 100%; padding: 16px; background: var(--deep-red);
             color: white; border: none; border-radius: 4px; cursor: pointer;
-            font-family: 'Noto Serif KR', serif; font-weight: bold; letter-spacing: 2px;
-            transition: background 0.3s; font-size: 16px;
+            font-family: inherit; font-weight: bold; letter-spacing: 2px; transition: 0.3s; font-size: 16px;
         }
         .btn-download:hover { background: #600000; }
 
-        /* 결과물 미리보기 영역 */
-        .card-preview-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            background: #000;
-            padding: 20px;
-            border-radius: 8px;
-            overflow-x: auto; /* 폰에서 좌우로 스크롤 가능하게 */
+        /* -------------------------------------------
+           [3] 오른쪽: 결과물 미리보기 영역
+           ------------------------------------------- */
+        .preview-section {
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        /* 기록지 디자인 (4:3 비율 프레임 고정) */
+        /* 폰 화면일 때 좌우로 넘겨보라고 알려주는 텍스트 */
+        .mobile-hint {
+            display: none; color: var(--gold-gradient); font-size: 12px; margin-bottom: 10px; font-weight: bold;
+        }
+        @media (max-width: 899px) { .mobile-hint { display: block; color: #d4af37; } }
+
+        /* 모바일에서 카드 크기가 줄어들지 않고 원본 유지하며 스크롤되도록 */
+        .preview-wrapper {
+            width: 100%; max-width: 100vw; overflow-x: auto; padding-bottom: 20px;
+        }
+
+        /* 기록지 디자인 (4:3 비율 고정: 800x600) */
         #personnel-card {
-            width: 800px;
-            min-width: 800px; /* 모바일에서도 찌그러지지 않게 강제 고정 */
-            height: 600px; 
-            background: #0a0a0a;
-            border: 1px solid #1a1a1a;
-            position: relative;
-            padding: 40px 30px;
-            box-sizing: border-box;
+            width: 800px; height: 600px; /* 화질 보존을 위해 픽셀 고정 */
+            background: #0a0a0a; border: 1px solid #1a1a1a;
+            position: relative; padding: 40px 30px; box-sizing: border-box;
             box-shadow: 0 0 30px rgba(0,0,0,1);
             background: linear-gradient(135deg, #0d0d0d 0%, #151515 100%);
+            margin: 0 auto;
         }
 
         #personnel-card::before {
@@ -141,13 +144,12 @@
             letter-spacing: 10px; display: inline-block; border-bottom: 2px solid var(--deep-red); padding-bottom: 10px;
         }
 
-        .card-body {
-            display: flex; gap: 25px; height: calc(100% - 100px); position: relative; z-index: 10;
-        }
+        .card-body { display: flex; gap: 25px; height: calc(100% - 100px); position: relative; z-index: 10; }
 
-        /* 왼쪽: 사진 및 짤막한 정보 */
+        /* 왼쪽: 사진 및 사이드 정보 */
         .left-info { flex: 0 0 220px; display: flex; flex-direction: column; gap: 15px; }
 
+        /* [핵심 방어] 사진 찌그러짐 원천 차단 */
         .photo-frame {
             width: 200px; height: 200px; margin: 0 auto; border: 2px solid #2a2a2a;
             background: #050505; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.6);
@@ -160,7 +162,246 @@
         .photo-frame::after { bottom: -4px; right: -4px; border-left: none; border-top: none; }
 
         .photo-frame img {
-            width: 100%; height: 100%; object-fit: cover; object-position: center; display: none;
+            width: 100%; height: 100%;
+            object-fit: cover !important; /* 어떤 비율을 올려도 꽉 차게 조절 (찌그러짐 절대 없음) */
+            object-position: center; display: none;
         }
 
-        .side-info { border-top: 1px
+        .side-info { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .side-item { display: grid; grid-template-columns: 80px 1fr; gap: 5px; align-items: center; }
+        .side-label { color: var(--deep-red); font-size: 13px; font-weight: bold; letter-spacing: 1px; }
+        .side-value { color: #ccc; font-size: 14px; font-weight: 300; }
+
+        /* 오른쪽: 데이터 표 & 특이사항 */
+        .right-data { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+        .data-grid { display: flex; flex-direction: column; border-top: 1px solid #1a1a1a; padding-top: 15px; }
+        .data-row {
+            display: grid; grid-template-columns: 120px 1fr; gap: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 12px;
+        }
+        .data-row:last-child { margin-bottom: 0; }
+
+        .data-label { color: var(--deep-red); font-size: 14px; font-weight: 700; letter-spacing: 2px; padding-top: 2px; }
+        .data-value {
+            color: #ccc; font-size: 15px; font-weight: 300;
+            white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5;
+        }
+
+        .notes-area {
+            flex: 1; border: 1px dashed #2a2a2a; padding: 15px; background: rgba(0,0,0,0.3);
+            border-radius: 4px; display: flex; flex-direction: column; overflow: hidden;
+        }
+        .notes-label { color: #d4af37; font-weight: bold; font-size: 14px; margin-bottom: 10px; letter-spacing: 2px; }
+        .notes-value { color: #b0b0b0; font-size: 14px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: break-word; flex: 1; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+<div class="generator-layout">
+    <div class="editor-box">
+        <h3>기록 열람 · 작성</h3>
+        
+        <div class="input-group">
+            <label class="title">Agent Photo (사진 첨부)</label>
+            <input type="file" id="in-photo" accept="image/*">
+        </div>
+
+        <div class="input-group">
+            <label class="title">Name (이름)</label>
+            <input type="text" id="in-name" placeholder="이름을 입력하세요">
+        </div>
+
+        <div class="input-group">
+            <label class="title">Age (나이)</label>
+            <input type="text" id="in-age" placeholder="예: 25세 / 향년 21세">
+        </div>
+
+        <div class="input-group">
+            <label class="title">Affiliation (소속)</label>
+            <div class="radio-grid-2">
+                <label class="radio-label">
+                    <input type="radio" name="aff" value="특대과" class="hidden-radio" checked>
+                    <span class="radio-btn">특대과</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="aff" value="비문" class="hidden-radio">
+                    <span class="radio-btn">비문</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label class="title">Gender (성별)</label>
+            <div class="radio-grid-3">
+                <label class="radio-label">
+                    <input type="radio" name="gender" value="남성" class="hidden-radio" checked>
+                    <span class="radio-btn">남성</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="gender" value="여성" class="hidden-radio">
+                    <span class="radio-btn">여성</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="gender" value="무성" class="hidden-radio">
+                    <span class="radio-btn">무성</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label class="title">Soul Weapon (사용 무기)</label>
+            <input type="text" id="in-weapon" placeholder="무기명을 입력하세요">
+        </div>
+
+        <div class="input-group">
+            <label class="title">Origin True Age (본체 나이)</label>
+            <div class="radio-grid-2">
+                <label class="radio-label">
+                    <input type="radio" name="realage" value="성인" class="hidden-radio" checked>
+                    <span class="radio-btn">성인</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="realage" value="미성년자" class="hidden-radio">
+                    <span class="radio-btn">미성년자</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label class="title">특이사항</label>
+            <textarea id="in-notes" rows="3" placeholder="특징 및 능력을 상세히 서술하세요"></textarea>
+        </div>
+
+        <button class="btn-download" onclick="captureCard()">PNG로 다운로드</button>
+    </div>
+
+    <div class="preview-section">
+        <div class="mobile-hint">← 결과물은 좌우로 스크롤하여 확인하세요 →</div>
+        
+        <div class="preview-wrapper">
+            <div id="personnel-card">
+                <div class="card-header">
+                    <h2>멸혼사 인사기록지</h2>
+                </div>
+                
+                <div class="card-body">
+                    <div class="left-info">
+                        <div class="photo-frame">
+                            <img id="out-photo" src="" alt="Agent Photo">
+                        </div>
+                        <div class="side-info">
+                            <div class="side-item">
+                                <div class="side-label">성별</div>
+                                <div class="side-value" id="out-gender">남성</div>
+                            </div>
+                            <div class="side-item">
+                                <div class="side-label">본체 나이</div>
+                                <div class="side-value" id="out-realage">성인</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="right-data">
+                        <div class="data-grid">
+                            <div class="data-row">
+                                <div class="data-label">이름</div>
+                                <div class="data-value" id="out-name">미상</div>
+                            </div>
+                            <div class="data-row">
+                                <div class="data-label">나이</div>
+                                <div class="data-value" id="out-age">미상</div>
+                            </div>
+                            <div class="data-row">
+                                <div class="data-label">소속</div>
+                                <div class="data-value" id="out-aff">특대과</div>
+                            </div>
+                            <div class="data-row">
+                                <div class="data-label">사용 무기</div>
+                                <div class="data-value" id="out-weapon">미상</div>
+                            </div>
+                        </div>
+
+                        <div class="notes-area">
+                            <div class="notes-label">특이사항</div>
+                            <div class="notes-value" id="out-notes">기록 없음</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 텍스트 실시간 동기화
+    const inputs = {
+        name: document.getElementById('in-name'),
+        age: document.getElementById('in-age'),
+        weapon: document.getElementById('in-weapon'),
+        notes: document.getElementById('in-notes')
+    };
+
+    const outputs = {
+        name: document.getElementById('out-name'),
+        age: document.getElementById('out-age'),
+        weapon: document.getElementById('out-weapon'),
+        notes: document.getElementById('out-notes')
+    };
+
+    Object.keys(inputs).forEach(key => {
+        inputs[key].addEventListener('input', () => {
+            outputs[key].innerText = inputs[key].value || (key === 'notes' ? '기록 없음' : '미상');
+        });
+    });
+
+    // 라디오 버튼 실시간 동기화 (새로운 구조에 맞춤)
+    function updateRadioGroup(radioName, targetId) {
+        document.getElementsByName(radioName).forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.checked) {
+                    document.getElementById(targetId).innerText = radio.value;
+                }
+            });
+        });
+    }
+
+    updateRadioGroup('aff', 'out-aff');
+    updateRadioGroup('gender', 'out-gender');
+    updateRadioGroup('realage', 'out-realage');
+
+    // [핵심] 사진 비율 유지 처리
+    document.getElementById('in-photo').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = document.getElementById('out-photo');
+                img.src = event.target.result;
+                img.style.display = 'block'; // 이미지가 로드되면 띄움 (찌그러짐 방지 CSS는 자동 적용됨)
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // 고화질 PNG 다운로드
+    function captureCard() {
+        const card = document.getElementById('personnel-card');
+        const agentName = inputs.name.value || 'Agent';
+        
+        html2canvas(card, {
+            scale: 2, // 2배율로 선명하게 캡처
+            backgroundColor: '#0a0a0a',
+            logging: false,
+            useCORS: true
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `멸혼사_인사기록지_${agentName}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+</script>
+
+</body>
+</html>
