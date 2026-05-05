@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>멸혼사 인사기록지 생성기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --card-bg: #141414;
+            --gold: #d4af37;
+            --gray: #b0b0b0;
+            --dark-gray: #333333;
+            --red-point: #b30000;
+            --red-light: #ff4d4d;
+        }
+
+        body {
+            font-family: 'Noto Serif KR', serif;
+            background-color: var(--bg-color);
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+        }
+
+        /* 왼쪽: 입력 폼 디자인 */
+        .editor-section {
+            background-color: #1a1a1a;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--dark-gray);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .editor-section h2 { margin-top: 0; color: var(--red-light); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--gold); }
+        .form-group input[type="text"], .form-group textarea {
+            width: 100%; padding: 10px; box-sizing: border-box;
+            background-color: #222; border: 1px solid var(--dark-gray); color: #fff;
+            font-family: inherit;
+        }
+        .form-group input[type="file"] { color: var(--gray); }
+        .form-group .hint { font-size: 12px; color: var(--gray); margin-top: 5px; display: block; }
+        .radio-group { display: flex; gap: 15px; }
+        .radio-group label { color: #fff; font-weight: normal; display: flex; align-items: center; gap: 5px; }
+
+        button.download-btn {
+            width: 100%; padding: 15px; background-color: var(--red-point);
+            color: white; border: none; font-size: 18px; font-weight: bold;
+            cursor: pointer; transition: 0.3s; font-family: inherit;
+        }
+        button.download-btn:hover { background-color: var(--red-light); }
+
+        /* 오른쪽: 인사기록지 결과물 (3:4 비율 고정) */
+        .preview-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 3:4 비율 고정 (600x800) */
+        #id-card {
+            width: 600px;
+            height: 800px;
+            background-color: var(--card-bg);
+            border: 3px solid var(--dark-gray);
+            box-sizing: border-box;
+            padding: 40px;
+            position: relative;
+            /* 악귀 잡는 세계관에 맞는 배경 질감/그라데이션 */
+            background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        #id-card::before {
+            content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 1px solid var(--red-point); opacity: 0.5; pointer-events: none;
+        }
+
+        .card-title {
+            color: var(--gold);
+            text-align: center;
+            font-size: 36px;
+            font-weight: 900;
+            letter-spacing: 10px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+            border-bottom: 2px solid var(--red-point);
+            padding-bottom: 15px;
+        }
+
+        /* 사진 영역 (비율 유지, 찌그러짐 방지) */
+        .photo-area {
+            width: 210px;
+            height: 280px;
+            margin: 0 auto 30px;
+            border: 2px solid var(--dark-gray);
+            background-color: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .photo-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 어떤 비율을 올려도 꽉 차게 맞춰줌 */
+            display: none;
+        }
+
+        /* 정보 영역 */
+        .info-table { width: 100%; border-collapse: collapse; }
+        .info-table tr { border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .info-table td { padding: 12px 5px; font-size: 16px; }
+        .info-table .label {
+            width: 150px;
+            color: var(--red-light);
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .info-table .value { color: var(--gray); font-weight: 400; }
+
+        /* 하단 경고문 */
+        .footer-warning {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: var(--red-point);
+            font-size: 13px;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="editor-section">
+        <h2>기록 작성</h2>
+        
+        <div class="form-group">
+            <label>사진 첨부</label>
+            <input type="file" id="input-photo" accept="image/*">
+        </div>
+
+        <div class="form-group">
+            <label>이름</label>
+            <input type="text" id="input-name" placeholder="이름을 입력하세요">
+        </div>
+
+        <div class="form-group">
+            <label>나이</label>
+            <input type="text" id="input-age" placeholder="예: 25세 / 향년 21세">
+            <span class="hint">* 특대과의 경우: 현재 나이 작성<br>* 비문 소속의 경우: 향년 나이 작성</span>
+        </div>
+
+        <div class="form-group">
+            <label>소속</label>
+            <div class="radio-group">
+                <label><input type="radio" name="affiliation" value="특대과" onchange="updateRadio('val-affiliation', this.value)" checked> 특대과</label>
+                <label><input type="radio" name="affiliation" value="비문" onchange="updateRadio('val-affiliation', this.value)"> 비문</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>사용 무기</label>
+            <input type="text" id="input-weapon" placeholder="사용하는 무기를 입력하세요">
+        </div>
+
+        <div class="form-group">
+            <label>성별</label>
+            <div class="radio-group">
+                <label><input type="radio" name="gender" value="남성" onchange="updateRadio('val-gender', this.value)" checked> 남성</label>
+                <label><input type="radio" name="gender" value="여성" onchange="updateRadio('val-gender', this.value)"> 여성</label>
+                <label><input type="radio" name="gender" value="무성" onchange="updateRadio('val-gender', this.value)"> 무성</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>본체 나이</label>
+            <div class="radio-group">
+                <label><input type="radio" name="true-age" value="성인" onchange="updateRadio('val-true-age', this.value)" checked> 성인</label>
+                <label><input type="radio" name="true-age" value="미성년자" onchange="updateRadio('val-true-age', this.value)"> 미성년자</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>특이 체질 및 이능력</label>
+            <textarea id="input-ability" rows="3" placeholder="특징을 간략히 서술하세요"></textarea>
+        </div>
+
+        <button class="download-btn" onclick="downloadCard()">PNG로 다운로드</button>
+    </div>
+
+    <div class="preview-section">
+        <div id="id-card">
+            <div class="card-title">멸혼사 인사기록지</div>
+            
+            <div class="photo-area">
+                <img id="card-photo" src="" alt="Profile Photo">
+            </div>
+
+            <table class="info-table">
+                <tr>
+                    <td class="label">이름</td>
+                    <td class="value" id="val-name">-</td>
+                </tr>
+                <tr>
+                    <td class="label">나이</td>
+                    <td class="value" id="val-age">-</td>
+                </tr>
+                <tr>
+                    <td class="label">소속</td>
+                    <td class="value" id="val-affiliation">특대과</td>
+                </tr>
+                <tr>
+                    <td class="label">사용 무기</td>
+                    <td class="value" id="val-weapon">-</td>
+                </tr>
+                <tr>
+                    <td class="label">성별</td>
+                    <td class="value" id="val-gender">남성</td>
+                </tr>
+                <tr>
+                    <td class="label">본체 나이</td>
+                    <td class="value" id="val-true-age">성인</td>
+                </tr>
+                <tr>
+                    <td class="label" style="vertical-align: top;">특이 체질 및 이능력</td>
+                    <td class="value" id="val-ability" style="white-space: pre-wrap;">-</td>
+                </tr>
+            </table>
+
+            <div class="footer-warning">
+                본 인사기록지는 보안 문서로 무단 열람 및 유출을 금지합니다.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 텍스트 입력 동기화 함수
+        function syncText(inputId, targetId) {
+            document.getElementById(inputId).addEventListener('input', function(e) {
+                document.getElementById(targetId).innerText = e.target.value || '-';
+            });
+        }
+
+        syncText('input-name', 'val-name');
+        syncText('input-age', 'val-age');
+        syncText('input-weapon', 'val-weapon');
+        syncText('input-ability', 'val-ability');
+
+        // 라디오 버튼 동기화 함수
+        function updateRadio(targetId, value) {
+            document.getElementById(targetId).innerText = value;
+        }
+
+        // 이미지 업로드 처리 (찌그러짐 방지 css 적용됨)
+        document.getElementById('input-photo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = document.getElementById('card-photo');
+                    img.src = event.target.result;
+                    img.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 캡처 및 다운로드 기능 (html2canvas 사용)
+        function downloadCard() {
+            const card = document.getElementById('id-card');
+            
+            // 고화질로 캡처하기 위해 scale 옵션 사용
+            html2canvas(card, { scale: 2, backgroundColor: null }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = '멸혼사_인사기록지.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
