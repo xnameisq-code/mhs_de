@@ -76,7 +76,7 @@
             width: 100%; padding: 10px; background: #111; color: #ccc; border: 1px dashed #555; border-radius: 4px; cursor: pointer;
         }
 
-        /* [수정 완] 라디오 버튼: 절대 안 깨지고 동일한 크기 유지 */
+        /* 라디오 버튼: 절대 안 깨지고 동일한 크기 유지 */
         .hidden-radio { display: none !important; /* 기본 동그라미 완벽 삭제 */ }
         .radio-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .radio-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
@@ -149,7 +149,7 @@
         /* 왼쪽: 사진 및 사이드 정보 */
         .left-info { flex: 0 0 220px; display: flex; flex-direction: column; gap: 15px; }
 
-        /* [핵심 방어] 사진 찌그러짐 원천 차단 */
+        /* 사진 찌그러짐 원천 차단 */
         .photo-frame {
             width: 200px; height: 200px; margin: 0 auto; border: 2px solid #2a2a2a;
             background: #050505; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.6);
@@ -163,7 +163,7 @@
 
         .photo-frame img {
             width: 100%; height: 100%;
-            object-fit: cover !important; /* 어떤 비율을 올려도 꽉 차게 조절 (찌그러짐 절대 없음) */
+            object-fit: cover !important; /* 어떤 비율을 올려도 꽉 차게 조절 */
             object-position: center; display: none;
         }
 
@@ -215,20 +215,6 @@
         <div class="input-group">
             <label class="title">Age (나이)</label>
             <input type="text" id="in-age" placeholder="예: 25세 / 향년 21세">
-        </div>
-
-        <div class="input-group">
-            <label class="title">Affiliation (소속)</label>
-            <div class="radio-grid-2">
-                <label class="radio-label">
-                    <input type="radio" name="aff" value="특대과" class="hidden-radio" checked>
-                    <span class="radio-btn">특대과</span>
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="aff" value="비문" class="hidden-radio">
-                    <span class="radio-btn">비문</span>
-                </label>
-            </div>
         </div>
 
         <div class="input-group">
@@ -313,10 +299,6 @@
                                 <div class="data-value" id="out-age">미상</div>
                             </div>
                             <div class="data-row">
-                                <div class="data-label">소속</div>
-                                <div class="data-value" id="out-aff">특대과</div>
-                            </div>
-                            <div class="data-row">
                                 <div class="data-label">사용 무기</div>
                                 <div class="data-value" id="out-weapon">미상</div>
                             </div>
@@ -355,7 +337,7 @@
         });
     });
 
-    // 라디오 버튼 실시간 동기화 (새로운 구조에 맞춤)
+    // 라디오 버튼 실시간 동기화
     function updateRadioGroup(radioName, targetId) {
         document.getElementsByName(radioName).forEach(radio => {
             radio.addEventListener('change', () => {
@@ -366,11 +348,10 @@
         });
     }
 
-    updateRadioGroup('aff', 'out-aff');
     updateRadioGroup('gender', 'out-gender');
     updateRadioGroup('realage', 'out-realage');
 
-    // [핵심] 사진 비율 유지 처리
+    // 사진 비율 유지 처리
     document.getElementById('in-photo').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -378,7 +359,7 @@
             reader.onload = (event) => {
                 const img = document.getElementById('out-photo');
                 img.src = event.target.result;
-                img.style.display = 'block'; // 이미지가 로드되면 띄움 (찌그러짐 방지 CSS는 자동 적용됨)
+                img.style.display = 'block'; 
             };
             reader.readAsDataURL(file);
         }
@@ -390,7 +371,7 @@
         const agentName = inputs.name.value || 'Agent';
         
         html2canvas(card, {
-            scale: 2, // 2배율로 선명하게 캡처
+            scale: 2, 
             backgroundColor: '#0a0a0a',
             logging: false,
             useCORS: true
